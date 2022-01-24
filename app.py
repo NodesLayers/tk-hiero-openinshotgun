@@ -89,20 +89,18 @@ class HieroOpenInShotgun(Application):
         sequence_name = sequence.name()
 
         self.log_debug(
-            "Looking for a shot '%s' with a sequence '%s' in ShotGrid..."
-            % (shot_name, sequence_name)
+            "Looking for a shot '%s' in ShotGrid..."
+            % (shot_name)
         )
 
-        filters = []
-        filters.append(["sg_sequence.Sequence.code", "is", sequence_name])
-        filters.append(["code", "is", shot_name])
+        filters = [["code", "is", shot_name]]
 
         sg_data = self.shotgun.find_one("Shot", filters)
 
         if sg_data is None:
             raise TankError(
-                "Could not find a Shot in ShotGrid with name '%s' associated with a Sequence '%s'!"
-                % (shot_name, sequence_name)
+                "Could not find a Shot in ShotGrid with name '%s'!"
+                % (shot_name)
             )
 
         # launch Shotgun Url using default browser
