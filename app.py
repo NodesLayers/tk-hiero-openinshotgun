@@ -93,7 +93,10 @@ class HieroOpenInShotgun(Application):
             % (shot_name)
         )
 
-        filters = [["code", "is", shot_name]]
+        filters = [
+            ["project", "is", self.context.project],
+            ["code", "is", shot_name]
+        ]
 
         sg_data = self.shotgun.find_one("Shot", filters)
 
