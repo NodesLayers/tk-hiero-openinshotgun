@@ -75,37 +75,41 @@ class HieroOpenInShotgun(Application):
             selection = [
                 s for s in selection if not isinstance(s, hiero.core.EffectTrackItem)
             ]
+           
+        # Exclude non TrackItems from the list of selected items
+        if hasattr(hiero.core, "EffectTrackItem"):
+            selection = [
+                s for s in selection if isinstance(s, hiero.core.TrackItem)
+            ]
 
-        if len(selection) != 1:
-            raise TankError("Please select a single Shot!")
-
-        if not isinstance(selection[0], hiero.core.TrackItem):
+        if len(selection) == 0:
             raise TankError("Please select a Shot in the Timeline or Spreadsheet!")
 
-        # this is always okay according to the hiero API docs
-        sequence = selection[0].parent().parent()
+        for item in selection:
+            # this is always okay according to the hiero API docs
+            sequence = item.parent().parent()
 
-        shot_name = selection[0].name()
-        sequence_name = sequence.name()
+            shot_name = item.name()
+            sequence_name = sequence.name()
 
-        self.log_debug(
-            "Looking for a shot '%s' in ShotGrid..."
-            % (shot_name)
-        )
-
-        filters = [
-            ["project", "is", self.context.project],
-            ["code", "is", shot_name]
-        ]
-
-        sg_data = self.shotgun.find_one("Shot", filters)
-
-        if sg_data is None:
-            raise TankError(
-                "Could not find a Shot in ShotGrid with name '%s'!"
+            self.log_debug(
+                "Looking for a shot '%s' in ShotGrid..."
                 % (shot_name)
             )
 
-        # launch Shotgun Url using default browser
-        url = "%s/detail/Shot/%s" % (self.shotgun.base_url, sg_data["id"])
-        QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))
+            filters = [
+                ["project", "is", self.context.project],
+                ["code", "is", shot_name]
+            ]
+
+            sg_data = self.shotgun.find_one("Shot", filters)
+
+            if sg_data is None:
+                raise TankError(
+                    "Could not find a Shot in ShotGrid with name '%s'!"
+                    % (shot_name)
+                )
+
+            # launch Shotgun Url using default browser
+            url = "%s/detail/Shot/%s" % (self.shotgun.base_url, sg_data["id"])
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl(url))
