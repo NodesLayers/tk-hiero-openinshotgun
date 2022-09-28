@@ -12,6 +12,7 @@
 Open selection in Shotgun
 """
 
+from pprint import pformat
 import hiero.core
 
 from tank.platform import Application
@@ -59,32 +60,45 @@ class HieroOpenInShotgun(Application):
         Look up shot in shotgun from selection
         """
 
+        # THIS SEEMS TO NO LONGER WORK
         # grab the current selection from the view that triggered the event.
-        selection = self.engine.get_menu_selection()
+        # selection = self.engine.get_menu_selection()
+
+        # get the active sequence, editor and selection
+        activeSeq = hiero.ui.activeSequence()
+        activeEditor = hiero.ui.getTimelineEditor(activeSeq)
+        selection = activeEditor.selection()
+        self.logger.debug("Selection: {}".format(pformat(selection)))
 
         # Exclude transisions from the list of selected items if this version of
         # hiero supports effects
         if hasattr(hiero.core, "Transition"):
+            self.logger.debug("Excluding items of type: hiero.core.Transition")
             selection = [
                 s for s in selection if not isinstance(s, hiero.core.Transition)
             ]
+        self.logger.debug("Selection: {}".format(pformat(selection)))
 
         # Exclude effects from the list of selected items if this version of
         # hiero supports effects
         if hasattr(hiero.core, "EffectTrackItem"):
+            self.logger.debug("Excluding items of type: hiero.core.EffectTrackItem")
             selection = [
                 s for s in selection if not isinstance(s, hiero.core.EffectTrackItem)
             ]
-           
+        self.logger.debug("Selection: {}".format(pformat(selection)))
+
         # Exclude non TrackItems from the list of selected items
-        if hasattr(hiero.core, "EffectTrackItem"):
-            selection = [
-                s for s in selection if isinstance(s, hiero.core.TrackItem)
-            ]
+        self.logger.debug("Excluding items NOT of type: hiero.core.TrackItem...")
+        selection = [
+            s for s in selection if isinstance(s, hiero.core.TrackItem)
+        ]
+        self.logger.debug("Selection: {}".format(pformat(selection)))
 
         if len(selection) == 0:
             raise TankError("Please select a Shot in the Timeline or Spreadsheet!")
 
+        # deal with each selected hiero.core.TrackItem
         for item in selection:
             # this is always okay according to the hiero API docs
             sequence = item.parent().parent()
